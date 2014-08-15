@@ -1,4 +1,4 @@
-# Nimrod module for determining whether or not a particular user agent can fetch a URL on a Web site.
+# Nimrod module for determining whether or not a particular user agent can fetch a URL on a website.
 # Ported from Python's robotparser module (urllib.robotparser in Python 3).
 
 # Written by Adam Chesak
