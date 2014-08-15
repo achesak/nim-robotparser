@@ -89,7 +89,7 @@ import uri
 type TRobotRule* = object
     path : string
     allowance : bool
-type PRobotRule = ref TRobotRule
+type PRobotRule* = ref TRobotRule
 
 type TRobotEntry* = object
     useragents : seq[string]
