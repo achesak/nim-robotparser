@@ -1,14 +1,80 @@
-# Nimrod module for determining whether or not a particular user agent can fetch a URL on the Web site.
+# Nimrod module for determining whether or not a particular user agent can fetch a URL on a Web site.
 # Ported from Python's robotparser module (urllib.robotparser in Python 3).
 
 # Written by Adam Chesak
 # Released under the MIT open source license.
 
 
+## nimrod-robotparser is a Nimrod module for determining whether or not a particular user agent can
+## fetch a URL on a website. It is a port of Python's ``robotparser`` module (``urllib.robotparser``
+## in Python 3).
 ##
+## Usage examples
+## ==============
 ##
-## ADD A SECTION OF DOCS WITH CODE EXAMPLES!!!!! USE THE robots.txt ON wikipedia.org, IT'S NICE
-## AND COMPLEX WITH LOTS OF STUFF TO DO EXAMPLES OF. :)
+## Basic use:
+##
+## .. code-block:: nimrod
+##    
+##    # Create a new robot parser and load a robots.txt file.
+##    var robot : PRobotParser = createRobotParser("http://www.google.com/robots.txt")
+##    # Read from the robots.txt file.
+##    robot.read()
+##    # Can we fetch certain pages?
+##    echo(robot.canFetch("*", "/maps/api/js?")    # Outputs true.
+##    echo(robot.canFetch("*", "/search")          # Outputs false.
+##    echo(robot.canFetch("*", "/musicsearch")     # Outputs false.
+##
+## Loading a URL after creation, and changing the ``robots.txt`` file:
+## 
+## .. code-block:: nimrod
+##    
+##    # Create a new robot parser, without specifying the URL yet.
+##    var robot : PRobotParser = createRobotParser()
+##    # Now set the URL.
+##    robot.setURL("http://www.google.com/robots.txt")
+##    # Can now read and test in the same way as the previous example.
+##    robot.read()
+##    # It is also possible to use setURL() and read() to change the
+##    # robots.txt file. Simply set the new URL and call read() again.
+##    robot.setURL("http://en.wikipedia.org/robots.txt")
+##    robot.read()
+##
+## Using the time procs to test when the ``robots.txt`` file was last parsed:
+##
+## .. code-block:: nimrod
+##    
+##    # Create another new robot parser.
+##    var robot : PRobotParser = createRobotParser("http://www.google.com/robots.txt")
+##    # Read from the robots.txt file.
+##    robot.read()
+##    # ... more misc code here ...
+##    # robots.txt file could be out of date here. Check to see if it's too old.
+##    var time : TTime = robot.mtime()
+##    # If the file is more than ten second old (pulling numbers out of thin air here...),
+##    # reload the file.
+##    if time < getTime() - 10:
+##        # Read the file again, and set the last modified time to now.
+##        robot.read()
+##        robot.modified()
+##
+## Checking for specific useragents:
+##
+## .. code-block:: nimrod
+##    
+##    # Create yet anothr robot parser. Let's use Wikipedia's robots.txt, as they
+##    # have one that's nice and long. :)
+##    var robot : PRobotParser = createRobotParser("http://en.wikipedia.org/robots.txt")
+##    # Read the rules.
+##    robot.read()
+##    # Check for pages using different useragents.
+##    echo(robot.canFetch("WebCopier", "/"))             # Outputs false.
+##    echo(robot.canFetch("ia_archiver", "/wiki"))       # Outputs true.
+##    echo(robot.canFetch("ia_archiver", "/wiki/User"))  # Outputs false.
+##    
+##
+## Note that nimrod-robotparser requires the ``robots.txt`` file to be valid and follows the
+## correct format. Only minimal checks are done to make sure that the given file is correct.
 
 
 import times
@@ -189,14 +255,14 @@ proc `$`*(robot : PRobotParser): string =
     return s
 
 
-proc createEntry*(): PRobotEntry = 
+proc createEntry(): PRobotEntry = 
     ## Creates a new entry.
     
     var e : PRobotEntry = PRobotEntry(useragents: @[], rules: @[])
     return e
 
 
-proc `$`*(entry : PRobotEntry): string =
+proc `$`(entry : PRobotEntry): string =
     ## Operator to convert a PRobotEntry to a string.
     
     var s : string = ""
@@ -207,7 +273,7 @@ proc `$`*(entry : PRobotEntry): string =
     return s
 
 
-proc appliesTo*(entry : PRobotEntry, useragent : string): bool = 
+proc appliesTo(entry : PRobotEntry, useragent : string): bool = 
     ## Determines whether or not the entry applies to the specified agent.
     
     var useragent2 : string = useragent.split('/')[0].toLower()
@@ -221,7 +287,7 @@ proc appliesTo*(entry : PRobotEntry, useragent : string): bool =
     return false
 
 
-proc allowance*(entry : PRobotEntry, filename : string): bool = 
+proc allowance(entry : PRobotEntry, filename : string): bool = 
     ## Determines whether or not a line is allowed.
     
     for line in entry.rules:
@@ -230,14 +296,14 @@ proc allowance*(entry : PRobotEntry, filename : string): bool =
     return true
 
 
-proc createRule*(path : string, allowance : bool): PRobotRule = 
+proc createRule(path : string, allowance : bool): PRobotRule = 
     ## Creates a new rule.
     
     var r : PRobotRule = PRobotRule(path: quote(path), allowance: allowance)
     return r
 
 
-proc `$`*(rule : PRobotRule): string = 
+proc `$`(rule : PRobotRule): string = 
     ## Operator to convert a PRobotRule to a string.
     
     var s : string
@@ -248,14 +314,10 @@ proc `$`*(rule : PRobotRule): string =
     return s & rule.path
 
 
-proc appliesTo*(rule : PRobotRule, filename : string): bool = 
+proc appliesTo(rule : PRobotRule, filename : string): bool = 
     ## Determines whether ``filename`` applies to the specified rule.
     
     if rule.path == "%2A": # if rule.path == "*":
         return true
-    return re.match(filename, re(rule.path))
+    return filename.find(urlDecode(rule.path)) != -1
 
-
-var r : PRobotParser = createRobotParser("http://en.wikipedia.org/robots.txt")
-r.read()
-echo(r.canFetch("*", "/wiki/Especial:Search"))
