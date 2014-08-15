@@ -1,0 +1,9 @@
+---- About ----
+
+nimod-robotparser is a Nimrod module for using robots.txt files to determine whether or not a particular user agent can fetch a URL on a website. It is a port of Python's robotparser module.
+
+See the documentation.html file for usage and more info.
+
+---- License ----
+
+nimrod-robotparser is released under the MIT open source license.
