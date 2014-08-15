@@ -7,7 +7,8 @@
 
 ##
 ##
-## ADD A SECTION OF DOCS WITH CODE EXAMPLES!!!!!
+## ADD A SECTION OF DOCS WITH CODE EXAMPLES!!!!! USE THE robots.txt ON wikipedia.org, IT'S NICE
+## AND COMPLEX WITH LOTS OF STUFF TO DO EXAMPLES OF. :)
 
 
 import times
@@ -142,20 +143,20 @@ proc parse*(robot : PRobotParser, lines : seq[string]) =
          if len(lineSeq) > 2:
              for j in 2..high(lineSeq):
                  lineSeq[1] &= lineSeq[j]
-         lineSeq[0] = lineSeq[0].strip().toLower()
-         lineSeq[1] = lineSeq[1].strip()
-         if lineSeq[0] == "user-agent":
-             if state == 2:
-                 robot.entries = robot.entries.concat(@[entry])
-                 entry = createEntry()
-             entry.useragents = entry.useragents.concat(@[lineSeq[1]])
-             state = 1
-         elif lineSeq[0] == "disallow":
-             entry.rules = entry.rules.concat(@[createRule(lineSeq[1], false)])
-             state = 2
-         elif lineSeq[0] == "allow":
-             entry.rules = entry.rules.concat(@[createRule(lineSeq[1], true)])
-             #state = 2                                                             ## POSSIBLE BUGFIX: THIS ISN"T IN THE PYTHON VERSION
+         if len(lineSeq) >= 2:
+             lineSeq[0] = lineSeq[0].strip().toLower()
+             lineSeq[1] = lineSeq[1].strip()
+             if lineSeq[0] == "user-agent":
+                 if state == 2:
+                     robot.entries = robot.entries.concat(@[entry])
+                     entry = createEntry()
+                 entry.useragents = entry.useragents.concat(@[lineSeq[1]])
+                 state = 1
+             elif lineSeq[0] == "disallow":
+                 entry.rules = entry.rules.concat(@[createRule(lineSeq[1], false)])
+                 state = 2
+             elif lineSeq[0] == "allow":
+                 entry.rules = entry.rules.concat(@[createRule(lineSeq[1], true)])
          if state == 2:
              robot.entries = robot.entries.concat(@[entry])
              
@@ -255,6 +256,6 @@ proc appliesTo*(rule : PRobotRule, filename : string): bool =
     return re.match(filename, re(rule.path))
 
 
-var r : PRobotParser = createRobotParser("http://www.google.com/robots.txt")
+var r : PRobotParser = createRobotParser("http://en.wikipedia.org/robots.txt")
 r.read()
-echo(r.canFetch("*", "/news"))
+echo(r.canFetch("*", "/wiki/Especial:Search"))
