@@ -1,11 +1,11 @@
-# Nimrod module for determining whether or not a particular user agent can fetch a URL on a website.
+# Nim module for determining whether or not a particular user agent can fetch a URL on a website.
 # Ported from Python's robotparser module (urllib.robotparser in Python 3).
 
 # Written by Adam Chesak
 # Released under the MIT open source license.
 
 
-## nimrod-robotparser is a Nimrod module for determining whether or not a particular user agent can
+## nim-robotparser is a Nim module for determining whether or not a particular user agent can
 ## fetch a URL on a website. It is a port of Python's ``robotparser`` module (``urllib.robotparser``
 ## in Python 3).
 ##
@@ -17,7 +17,7 @@
 ## .. code-block:: nimrod
 ##    
 ##    # Create a new robot parser and load a robots.txt file.
-##    var robot : PRobotParser = createRobotParser("http://www.google.com/robots.txt")
+##    var robot : RobotParser = createRobotParser("http://www.google.com/robots.txt")
 ##    # Read from the robots.txt file.
 ##    robot.read()
 ##    # Can we fetch certain pages?
@@ -30,7 +30,7 @@
 ## .. code-block:: nimrod
 ##    
 ##    # Create a new robot parser, without specifying the URL yet.
-##    var robot : PRobotParser = createRobotParser()
+##    var robot : RobotParser = createRobotParser()
 ##    # Now set the URL.
 ##    robot.setURL("http://www.google.com/robots.txt")
 ##    # Can now read and test in the same way as the previous example.
@@ -45,12 +45,12 @@
 ## .. code-block:: nimrod
 ##    
 ##    # Create another new robot parser.
-##    var robot : PRobotParser = createRobotParser("http://www.google.com/robots.txt")
+##    var robot : RobotParser = createRobotParser("http://www.google.com/robots.txt")
 ##    # Read from the robots.txt file.
 ##    robot.read()
 ##    # ... more misc code here ...
 ##    # robots.txt file could be out of date here. Check to see if it's too old.
-##    var time : TTime = robot.mtime()
+##    var time : Time = robot.mtime()
 ##    # If the file is more than ten second old (pulling numbers out of thin air here...),
 ##    # reload the file.
 ##    if time < getTime() - 10:
@@ -64,7 +64,7 @@
 ##    
 ##    # Create yet anothr robot parser. Let's use Wikipedia's robots.txt, as they
 ##    # have one that's nice and long. :)
-##    var robot : PRobotParser = createRobotParser("http://en.wikipedia.org/robots.txt")
+##    var robot : RobotParser = createRobotParser("http://en.wikipedia.org/robots.txt")
 ##    # Read the rules.
 ##    robot.read()
 ##    # Check for pages using different useragents.
@@ -86,62 +86,62 @@ import cgi
 import uri
 
 
-type TRobotRule* = object
+type RobotRuleInt* = object
     path : string
     allowance : bool
-type PRobotRule* = ref TRobotRule
+type RobotRule* = ref RobotRuleInt
 
-type TRobotEntry* = object
+type RobotEntryInt* = object
     useragents : seq[string]
-    rules : seq[PRobotRule]
-type PRobotEntry* = ref TRobotEntry
+    rules : seq[RobotRule]
+type RobotEntry* = ref RobotEntryInt
 
-type TRobotParser* = object
-    entries : seq[PRobotEntry]
+type RobotParserInt* = object
+    entries : seq[RobotEntry]
     disallowAll : bool
     allowAll : bool
     url : string
-    lastChecked : TTime
-type PRobotParser* = ref TRobotParser
+    lastChecked : Time
+type RobotParser* = ref RobotParserInt
 
-proc createRobotParser(url : string = ""): PRobotParser
-proc mtime(robot : PRobotParser): TTime
-proc modified(robot : PRobotParser) {.noreturn.}
-proc setURL(robot : PRobotParser, url : string) {.noreturn.}
-proc read(robot : PRobotParser) {.noreturn.}
-proc parse(robot : PRobotParser, lines : seq[string]) {.noreturn.}
-proc canFetch(robot : PRobotParser, useragent : string, url : string): bool
-proc `$`(robot : PRobotParser): string
-proc createEntry(): PRobotEntry
-proc `$`(entry : PRobotEntry): string
-proc appliesTo(entry : PRobotEntry, useragent : string): bool
-proc allowance(entry : PRobotEntry, filename : string): bool
-proc `$`(rule : PRobotRule): string
-proc createRule(path : string, allowance : bool): PRobotRule
-proc appliesTo(rule : PRobotRule, filename : string): bool
+proc createRobotParser*(url : string = ""): RobotParser
+proc mtime*(robot : RobotParser): Time
+proc modified*(robot : RobotParser) {.noreturn.}
+proc setURL*(robot : RobotParser, url : string) {.noreturn.}
+proc read*(robot : RobotParser) {.noreturn.}
+proc parse*(robot : RobotParser, lines : seq[string]) {.noreturn.}
+proc canFetch*(robot : RobotParser, useragent : string, url : string): bool
+proc `$`*(robot : RobotParser): string
+proc createEntry(): RobotEntry
+proc `$`(entry : RobotEntry): string
+proc appliesTo(entry : RobotEntry, useragent : string): bool
+proc allowance(entry : RobotEntry, filename : string): bool
+proc `$`(rule : RobotRule): string
+proc createRule(path : string, allowance : bool): RobotRule
+proc appliesTo(rule : RobotRule, filename : string): bool
 
 
 proc quote(url : string): string = 
     ## Replaces special characters in url. Should have the same functionality as urllib.quote() in Python.
     
-    var s : string = urlEncode(url)
+    var s : string = encodeUrl(url)
     s = s.replace("%2F", "/")
     s = s.replace("%2E", ".")
     s = s.replace("%2D", "-")
     return s
 
 
-proc createRobotParser*(url : string = ""): PRobotParser = 
+proc createRobotParser*(url : string = ""): RobotParser = 
     ## Creates a new robot parser with the specified URL.
     ##
     ## ``url`` is optional, as long as it is specified later using ``setURL()``.
     
-    var r : PRobotParser = PRobotParser(entries: @[], lastChecked: getTime(), url: url, allowAll: false, disallowAll: false)
+    var r : RobotParser = RobotParser(entries: @[], lastChecked: getTime(), url: url, allowAll: false, disallowAll: false)
     #r.entries = @[] # This is probably a bad way of doing it. Currently it uses concat()
     return r         # from sequtils to add more as needed, but this can't be efficient.
 
 
-proc mtime*(robot : PRobotParser): TTime = 
+proc mtime*(robot : RobotParser): Time = 
     ## Returns the time that the ``robot.txt`` file was last fetched.
     ##
     ## This is useful for long-running web spiders that need to check for new ``robots.txt`` files periodically.
@@ -149,19 +149,19 @@ proc mtime*(robot : PRobotParser): TTime =
     return robot.lastChecked
 
 
-proc modified*(robot : PRobotParser) =
+proc modified*(robot : RobotParser) =
     ## Sets the time the ``robots.txt`` file was last fetched to the current time.
     
     robot.lastChecked = getTime()
 
 
-proc setURL*(robot : PRobotParser, url : string) =
+proc setURL*(robot : RobotParser, url : string) =
     ## Sets the URL referring to a ``robots.txt`` file.
     
     robot.url = url
 
 
-proc read*(robot : PRobotParser) = 
+proc read*(robot : RobotParser) = 
     ## Reads the ``robots.txt`` URL and feeds it to the parser.
     
     var s : string = getContent(robot.url)
@@ -170,7 +170,7 @@ proc read*(robot : PRobotParser) =
     robot.parse(lines)
 
 
-proc parse*(robot : PRobotParser, lines : seq[string]) = 
+proc parse*(robot : RobotParser, lines : seq[string]) = 
     ## Parses the specified lines.
     ##
     ## This is meant as an internal proc (called by ``read()``), but can also be used to parse a
@@ -180,7 +180,7 @@ proc parse*(robot : PRobotParser, lines : seq[string]) =
     ##
     ## .. code-block:: nimrod
     ##    
-    ##    var parser : PRobotParser = createParser()   # Note no URL specified.
+    ##    var parser : RobotParser = createParser()   # Note no URL specified.
     ##    var s : string = readFile("my_local_robots_file.txt")
     ##    var lines = s.splitLines()                   # Get the lines from a local file.
     ##    parser.parse(lines)                          # And parse them without loading from a remote server.
@@ -188,7 +188,7 @@ proc parse*(robot : PRobotParser, lines : seq[string]) =
     
     var state : int = 0
     var lineNumber : int = 0
-    var entry : PRobotEntry = createEntry()
+    var entry : RobotEntry = createEntry()
     
     for line1 in lines:
          var line : string = line1.strip()
@@ -228,7 +228,7 @@ proc parse*(robot : PRobotParser, lines : seq[string]) =
              
 
 
-proc canFetch*(robot : PRobotParser, useragent : string, url : string): bool = 
+proc canFetch*(robot : RobotParser, useragent : string, url : string): bool = 
     ## Returns ``true`` if the useragent is allowed to fetch ``url`` according to the rules contained in the parsed ``robots.txt`` file,
     ## and ``false`` if it is not.
     
@@ -236,7 +236,7 @@ proc canFetch*(robot : PRobotParser, useragent : string, url : string): bool =
         return true
     if robot.disallowAll:
         return false
-    var uri : TUri = parseUri(url)
+    var uri : Uri = parseUri(url)
     var newUrl : string = quote(uri.path)
     if newUrl == "":
         newUrl = "/" 
@@ -246,8 +246,8 @@ proc canFetch*(robot : PRobotParser, useragent : string, url : string): bool =
     return true
 
 
-proc `$`*(robot : PRobotParser): string = 
-    ## Operator to convert a PRobotParser to a string.
+proc `$`*(robot : RobotParser): string = 
+    ## Operator to convert a RobotParser to a string.
     
     var s : string = ""
     for entry in robot.entries:
@@ -255,15 +255,15 @@ proc `$`*(robot : PRobotParser): string =
     return s
 
 
-proc createEntry(): PRobotEntry = 
+proc createEntry(): RobotEntry = 
     ## Creates a new entry.
     
-    var e : PRobotEntry = PRobotEntry(useragents: @[], rules: @[])
+    var e : RobotEntry = RobotEntry(useragents: @[], rules: @[])
     return e
 
 
-proc `$`(entry : PRobotEntry): string =
-    ## Operator to convert a PRobotEntry to a string.
+proc `$`(entry : RobotEntry): string =
+    ## Operator to convert a RobotEntry to a string.
     
     var s : string = ""
     for i in entry.useragents:
@@ -273,7 +273,7 @@ proc `$`(entry : PRobotEntry): string =
     return s
 
 
-proc appliesTo(entry : PRobotEntry, useragent : string): bool = 
+proc appliesTo(entry : RobotEntry, useragent : string): bool = 
     ## Determines whether or not the entry applies to the specified agent.
     
     var useragent2 : string = useragent.split('/')[0].toLower()
@@ -287,7 +287,7 @@ proc appliesTo(entry : PRobotEntry, useragent : string): bool =
     return false
 
 
-proc allowance(entry : PRobotEntry, filename : string): bool = 
+proc allowance(entry : RobotEntry, filename : string): bool = 
     ## Determines whether or not a line is allowed.
     
     for line in entry.rules:
@@ -296,15 +296,15 @@ proc allowance(entry : PRobotEntry, filename : string): bool =
     return true
 
 
-proc createRule(path : string, allowance : bool): PRobotRule = 
+proc createRule(path : string, allowance : bool): RobotRule = 
     ## Creates a new rule.
     
-    var r : PRobotRule = PRobotRule(path: quote(path), allowance: allowance)
+    var r : RobotRule = RobotRule(path: quote(path), allowance: allowance)
     return r
 
 
-proc `$`(rule : PRobotRule): string = 
-    ## Operator to convert a PRobotRule to a string.
+proc `$`(rule : RobotRule): string = 
+    ## Operator to convert a RobotRule to a string.
     
     var s : string
     if rule.allowance:
@@ -314,10 +314,10 @@ proc `$`(rule : PRobotRule): string =
     return s & rule.path
 
 
-proc appliesTo(rule : PRobotRule, filename : string): bool = 
+proc appliesTo(rule : RobotRule, filename : string): bool = 
     ## Determines whether ``filename`` applies to the specified rule.
     
     if rule.path == "%2A": # if rule.path == "*":
         return true
-    return filename.find(urlDecode(rule.path)) != -1
+    return filename.find(decodeUrl(rule.path)) != -1
 
