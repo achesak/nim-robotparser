@@ -223,6 +223,7 @@ proc parse*(robot : RobotParser, lines : seq[string]) =
                  state = 2
              elif lineSeq[0] == "allow":
                  entry.rules = entry.rules.concat(@[createRule(lineSeq[1], true)])
+                 state = 2
          if state == 2:
              robot.entries = robot.entries.concat(@[entry])
              
