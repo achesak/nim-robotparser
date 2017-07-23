@@ -86,23 +86,21 @@ import cgi
 import uri
 
 
-type RobotRuleInt* = object
-    path : string
-    allowance : bool
-type RobotRule* = ref RobotRuleInt
+type
+    RobotRule* = ref object
+        path* : string
+        allowance* : bool
 
-type RobotEntryInt* = object
-    useragents : seq[string]
-    rules : seq[RobotRule]
-type RobotEntry* = ref RobotEntryInt
+    RobotEntry* = ref object
+        useragents* : seq[string]
+        rules* : seq[RobotRule]
 
-type RobotParserInt* = object
-    entries : seq[RobotEntry]
-    disallowAll : bool
-    allowAll : bool
-    url : string
-    lastChecked : Time
-type RobotParser* = ref RobotParserInt
+    RobotParser* = ref object
+        entries* : seq[RobotEntry]
+        disallowAll* : bool
+        allowAll* : bool
+        url* : string
+        lastChecked* : Time
 
 proc createRobotParser*(url : string = ""): RobotParser
 proc mtime*(robot : RobotParser): Time
