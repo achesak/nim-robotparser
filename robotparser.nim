@@ -80,6 +80,7 @@
 import times
 import httpclient
 import strutils
+import unicode
 import sequtils
 import re
 import cgi
@@ -162,7 +163,7 @@ proc setURL*(robot : RobotParser, url : string) =
 proc read*(robot : RobotParser) = 
     ## Reads the ``robots.txt`` URL and feeds it to the parser.
     
-    var s : string = getContent(robot.url)
+    var s : string = newHttpClient().getContent(robot.url)
     var lines = s.splitLines()
     
     robot.parse(lines)
@@ -208,7 +209,7 @@ proc parse*(robot : RobotParser, lines : seq[string]) =
              for j in 2..high(lineSeq):
                  lineSeq[1] &= lineSeq[j]
          if len(lineSeq) >= 2:
-             lineSeq[0] = lineSeq[0].strip().toLower()
+             lineSeq[0] = unicode.toLower(lineSeq[0].strip())
              lineSeq[1] = lineSeq[1].strip()
              if lineSeq[0] == "user-agent":
                  if state == 2:
@@ -275,12 +276,12 @@ proc `$`(entry : RobotEntry): string =
 proc appliesTo(entry : RobotEntry, useragent : string): bool = 
     ## Determines whether or not the entry applies to the specified agent.
     
-    var useragent2 : string = useragent.split('/')[0].toLower()
+    var useragent2 : string = unicode.toLower(useragent.split('/')[0])
     for agent in entry.useragents:
         if useragent2 == agent:
             if agent == "*":
                 return true
-            var agent2 : string = agent.toLower()
+            var agent2 : string = unicode.toLower(agent)
             if re.find(agent2, re(escapeRe(useragent2))) != -1:
                 return true
     return false
@@ -319,4 +320,3 @@ proc appliesTo(rule : RobotRule, filename : string): bool =
     if rule.path == "%2A": # if rule.path == "*":
         return true
     return filename.find(decodeUrl(rule.path)) != -1
-
